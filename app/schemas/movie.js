@@ -33,23 +33,7 @@ MovieSchema.pre('save', function(next) {
 })
 
 MovieSchema.statics = {
-    fetch: function(cb) {
-        return this
-            .find({})
-            .sort('meta.updateAt')
-            .exec(cb)
-    },
-    findById: function(id, cb) {
-        return this
-            .findOne({_id: id})
-            .exec(cb)
-    },
-    findByUrl: function(url, cb) {
-        return this
-            .find({url: url})
-            // .sort('meta.updateAt')
-            .exec(cb)
-    }
+    
 }
 
 module.exports = MovieSchema

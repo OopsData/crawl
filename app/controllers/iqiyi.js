@@ -1,24 +1,76 @@
+/**
+ * 因为这里的url地址只与iqiyi有关，所以文件名为iqiyi.js
+ */
 var Movie = require('../models/movie')
+var Trackable = require('../models/trackable')
+var _ = require('underscore')
 var request = require('request')
 var async = require('async')
-var later = require('later')
 
 function acquireData(data) {
     var reg = /Q.PageInfo.playPageInfo\s=\s([^;]*)\;/;
     data = data
-            .match(reg)[0]
-            .replace(reg, '$1');
+        .match(reg)[0]
+        .replace(reg, '$1');
     data = eval('(' + data + ')');
     return data;
 }
 
 exports.crawl = function(req, res) {
     var url = req.query.url
-    // var sched = later.parse.text('every 5 secs')
-    if (url) {
-        // var timer = later.setInterval(myCrawl, sched);
+    var state = req.query.trackable == 1 ? true : false
+    var trackableObj = {
+        state: state
+    }
+    var _trackable
+    
+    Trackable.findByUrl(url, function(err, data) {
+        if (err) {
+            console.log(err);
+        }
 
-        // function myCrawl() {
+        if (data) {
+            _trackable = _.extend(data, trackableObj)
+            _trackable.save(function(err) {
+                if (err) {
+                    console.log(err);
+                }
+            })
+        } else {
+            _trackable = new Trackable({
+                url: url,
+                state: state
+            })
+            _trackable.save(function(err) {
+                if (err) {
+                    console.log(err);
+                }
+            })
+        }
+    })
+
+    if (url) {
+        var interval = 5000;
+
+        (function schedule() {
+            var timeout = setTimeout(
+                function do_it() {
+                    (function() {
+                        myCrawl()
+                        schedule()
+                    }())
+                },
+                interval);
+
+            Trackable.findByUrl(url, function(err, data) {
+                // console.log(data.state);
+                if (!data.state) {
+                    clearTimeout(timeout)
+                }
+            })
+        }())
+
+        function myCrawl() {
             async.waterfall([
                 function(cb) {
                     request(url, function(error, response, body) {
@@ -91,13 +143,13 @@ exports.crawl = function(req, res) {
                         shareCount: movieObj.shareCount
                     })
                     _movie.save(function(err, movie) {
-                        if (err) {
-                            console.log(err);
-                        }
-                    })
-                    res.jsonp(data)
+                            if (err) {
+                                console.log(err);
+                            }
+                        })
+                        // res.write("data")
                 }
             ]);
-        // }
+        }
     }
 }
