@@ -6,6 +6,7 @@ var Trackable = require('../models/trackable')
 var _ = require('underscore')
 var request = require('request')
 var async = require('async')
+var later = require('later')
 
 function acquireData(data) {
     var reg = /Q.PageInfo.playPageInfo\s=\s([^;]*)\;/;
@@ -23,55 +24,51 @@ exports.crawl = function(req, res) {
         state: state
     }
     var _trackable
-    
-    Trackable.findByUrl(url, function(err, data) {
-        if (err) {
-            console.log(err);
-        }
-
-        if (data) {
-            _trackable = _.extend(data, trackableObj)
-            _trackable.save(function(err) {
-                if (err) {
-                    console.log(err);
-                }
-            })
-        } else {
-            _trackable = new Trackable({
-                url: url,
-                state: state
-            })
-            _trackable.save(function(err) {
-                if (err) {
-                    console.log(err);
-                }
-            })
-        }
-    })
 
     if (url) {
-        var interval = 5000;
+        // 更新trackable数据表。如果表中有相应数据，更新；否则，插入
+        Trackable.findByUrl(url, function(err, data) {
+            if (err) {
+                console.log(err);
+            }
+            if (data) {
+                _trackable = _.extend(data, trackableObj)
+                _trackable.save(function(err) {
+                    if (err) {
+                        console.log(err);
+                    }
+                })
+            } else {
+                _trackable = new Trackable({
+                    url: url,
+                    state: state
+                })
+                _trackable.save(function(err) {
+                    if (err) {
+                        console.log(err);
+                    }
+                })
+            }
+        })
 
-        (function schedule() {
-            var timeout = setTimeout(
-                function do_it() {
-                    (function() {
-                        myCrawl()
-                        schedule()
-                    }())
-                },
-                interval);
-
+        // 通过查询Trackabel数据表来更新movies数据表
+        var sched = later.parse.text('every 2 seconds')
+        var t = later.setInterval(function() {
             Trackable.findByUrl(url, function(err, data) {
-                // console.log(data.state);
-                if (!data.state) {
-                    clearTimeout(timeout)
+                if (err) {
+                    console.log(err);
+                }
+                if (data.state) {
+                    myCrawl()
+                } else {
+                    t.clear()
                 }
             })
-        }())
+        }, sched)
 
         function myCrawl() {
             async.waterfall([
+                // 获得被爬取页面id
                 function(cb) {
                     request(url, function(error, response, body) {
                         if (!error && response.statusCode === 200) {
@@ -82,6 +79,7 @@ exports.crawl = function(req, res) {
                         }
                     });
                 },
+                // 爬取第一个页面
                 function(data, cb) {
                     var mixerUrl = 'http://mixer.video.iqiyi.com/jp/mixin/videos/' + data.tvId
                     var tvId = data.tvId
@@ -104,6 +102,7 @@ exports.crawl = function(req, res) {
                         }
                     })
                 },
+                // 爬取第二个页面
                 function(data, cb) {
                     var upUrl = 'http://up.video.iqiyi.com/ugc-updown/quud.do' + '?dataid=' + data.tvId + '&type=2'
                     var tempObj = data
@@ -128,6 +127,7 @@ exports.crawl = function(req, res) {
                         }
                     })
                 },
+                // 存入数据库
                 function(data, cb) {
                     var movieObj = data
                     var _movie
