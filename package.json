@@ -1,29 +1,29 @@
 {
-  "name": "crawl",
-  "version": "0.0.1",
-  "description": "crawl web data",
-  "main": "app.js",
-  "dependencies": {
-    "async": "^1.5.0",
-    "express": "^4.13.3",
-    "later": "^1.2.0",
-    "moment": "^2.10.6",
-    "mongoose": "^4.2.5",
-    "morgan": "^1.6.1",
-    "path": "^0.12.7",
-    "request": "^2.65.0",
-    "underscore": "^1.8.3"
-  },
-  "devDependencies": {
-    "grunt": "^0.4.5",
-    "grunt-concurrent": "^2.0.4",
-    "grunt-contrib-nodemon": "^0.5.2",
-    "grunt-contrib-watch": "^0.6.1",
-    "grunt-nodemon": "^0.4.0"
-  },
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "sunli_lee@163.com",
-  "license": "MIT"
+    "name": "crawl",
+    "version": "0.0.1",
+    "description": "crawl web data",
+    "main": "app.js",
+    "dependencies": {
+        "async": "^1.5.0",
+        "express": "^4.13.3",
+        "later": "^1.2.0",
+        "moment": "^2.10.6",
+        "mongoose": "^4.2.5",
+        "morgan": "^1.6.1",
+        "path": "^0.12.7",
+        "request": "^2.65.0",
+        "underscore": "^1.8.3"
+    },
+    "devDependencies": {
+        "grunt": "^0.4.5",
+        "grunt-concurrent": "^2.0.4",
+        "grunt-contrib-nodemon": "^0.5.2",
+        "grunt-contrib-watch": "^0.6.1",
+        "grunt-nodemon": "^0.4.0"
+    },
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "sunli_lee@163.com",
+    "license": "MIT"
 }

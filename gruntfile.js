@@ -26,9 +26,6 @@ module.exports = function(grunt) {
                     watchedFolders: ['app', 'config', 'public'],
                     debug: true,
                     delayTime: 1,
-                    env: {
-                        PORT: 3001
-                    },
                     cwd: __dirname
                 }
             }
