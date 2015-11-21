@@ -5,7 +5,6 @@ var async = require('async')
 var later = require('later')
 var mongoose = require('mongoose')
 var dbUrl = 'mongodb://localhost/imooc-mej'
-var sched = later.parse.text('every 5 seconds')
 
 mongoose.connect(dbUrl)
 
@@ -19,15 +18,19 @@ var _extend = function(a, b) {
 };
 /* }}} */
 
+// 每5秒爬取一次
+var sched = later.parse.text('every 5 seconds')
+
 later.setInterval(function() {
     async.waterfall([
         function(cb) {
             Trackable
                 .findOneAndUpdate({
                     state: true,
-                    // next_sync_time: {
-                    //     $lt: Date.now()
-                    // }
+                    next_sync_time: {
+                        // 只选取next_sync_time小于当前时间的item
+                        $lt: Date.now()
+                    }
                 }, {
                     state: false
                 }, function(err, trackable) {
@@ -35,7 +38,7 @@ later.setInterval(function() {
                         console.log(err);
                     }
                     if (trackable) {
-                        console.log('test');
+                        console.log(trackable);
                         myCrawl(trackable.url)
                         cb(null, trackable.url)
                     }
@@ -44,7 +47,8 @@ later.setInterval(function() {
         function(url, cb) {
             var trackableObj = {
                 state: true,
-                next_sync_time: 22222
+                // 下次爬取时间在6秒之后
+                next_sync_time: Date.now() + 6 * 1000
             }
             Trackable
                 .findByUrl(url, function(err, trackable) {
