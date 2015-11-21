@@ -5,31 +5,60 @@ var async = require('async')
 var later = require('later')
 var mongoose = require('mongoose')
 var dbUrl = 'mongodb://localhost/imooc-mej'
-// var pm = require(__dirname + '/../pm')
-//     .createWorker({
-//         'heartbeat_interval': 3000,
-//         'terminate_timeout': 1000,
-//     })
-var sched = later.parse.text('every 2 seconds')
+var sched = later.parse.text('every 5 seconds')
 
 mongoose.connect(dbUrl)
-// pm.ready(function(socket, port) {
 
-// })
-Trackable.find({}, function(err, movies) {
-    if (err) {
-        console.log(err);
+/* {{{ private function _extend() */
+var _extend = function(a, b) {
+    a = a || {};
+    for (var i in b) {
+        a[i] = b[i];
     }
-    movies.forEach(function(movie) {
-        var t = later.setInterval(function() {
-            if (movie.state) {
-                myCrawl(movie.url)
-            } else {
-                t.clear()
+    return a;
+};
+/* }}} */
+
+later.setInterval(function() {
+    async.waterfall([
+        function(cb) {
+            Trackable
+                .findOneAndUpdate({
+                    state: true,
+                    // next_sync_time: {
+                    //     $lt: Date.now()
+                    // }
+                }, {
+                    state: false
+                }, function(err, trackable) {
+                    if (err) {
+                        console.log(err);
+                    }
+                    if (trackable) {
+                        console.log('test');
+                        myCrawl(trackable.url)
+                        cb(null, trackable.url)
+                    }
+                })
+        },
+        function(url, cb) {
+            var trackableObj = {
+                state: true,
+                next_sync_time: 22222
             }
-        }, sched)
-    })
-})
+            Trackable
+                .findByUrl(url, function(err, trackable) {
+                    var _trackable = _extend(trackable, trackableObj)
+                    _trackable.save(function(err) {
+                        if (err) {
+                            console.log(err);
+                        }
+                    })
+                    cb(null)
+                })
+        }
+    ])
+}, sched)
 
 function myCrawl(url) {
     async.waterfall([
