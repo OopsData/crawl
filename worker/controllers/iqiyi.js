@@ -37,8 +37,8 @@ later.setInterval(function() {
                     if (err) {
                         console.log(err);
                     }
+                    console.log(trackable);
                     if (trackable) {
-                        console.log(trackable);
                         myCrawl(trackable.url)
                         cb(null, trackable.url)
                     }
