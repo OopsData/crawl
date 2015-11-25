@@ -2,14 +2,16 @@ var mongoose = require('mongoose')
 
 var MovieSchema = new mongoose.Schema({
     url: String,
+    vn: String,
+    state: Boolean,
+    next_sync_time: {
+        default: 0,
+        type: Number
+    },
     subtitle: String,
-    playCount: Number,
     duration: Number,
-    upCount: Number,
-    downCount: Number,
-    commentCount: Number,
-    shareCount: Number,
-    score: Number,
+    publishTime: Number,
+    title: String,
     meta: {
         createAt: {
             type: Date,
@@ -22,7 +24,7 @@ var MovieSchema = new mongoose.Schema({
     }
 })
 
-MovieSchema.pre('save', function(next) {
+MovieSchema.pre('save', function(next) {    
     if (this.isNew) {
         this.meta.createAt = this.meta.updateAt = Date.now()
     } else {
@@ -33,7 +35,11 @@ MovieSchema.pre('save', function(next) {
 })
 
 MovieSchema.statics = {
-    
+    findByUrl: function(url, cb) {
+        return this
+            .findOne({url: url})
+            .exec(cb)
+    }
 }
 
 module.exports = MovieSchema
