@@ -1,6 +1,9 @@
 var mongoose = require('mongoose')
+var Schema = mongoose.Schema
+var ObjectId = Schema.Types.ObjectId
 
-var MovieSchema = new mongoose.Schema({
+var MovieSchema = new Schema({
+    stats: [{type: ObjectId, ref: 'Stat'}],
     url: String,
     vn: String,
     state: Boolean,

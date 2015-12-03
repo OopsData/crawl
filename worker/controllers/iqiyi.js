@@ -76,11 +76,19 @@ var _myCrawl = function(url, id) {
             })
         },
         // 存入数据库
-        function(data, cb) {
-            var statObj = data
-            var _stat
-            _stat = new Stat(statObj)
+        function(statObj, cb) {
+            var _stat = new Stat(statObj)
             _stat['movie'] = id
+            Movie
+                .findOne({_id: id})
+                .exec(function(err, movie) {
+                    movie.stats.push(_stat._id)
+                    movie.save(function(err, movie) {
+                        if (err) {
+                            console.log(err);
+                        }
+                    })
+                })
             _stat.save(function(err) {
                 if (err) {
                     console.log(err);
